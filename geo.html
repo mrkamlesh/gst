@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<style type="text/css">
+  button {
+    display: inline-block;
+    padding: 8px 36px;
+    vertical-align: middle;
+    overflow: hidden;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    color: #FFFFFF;
+    background-color: #4CAF50;
+    margin: 10px 20px;
+  }
+</style>
+<body>
+  <button onclick="tryGeolocation()">Get GEO</button>
+  <p id="demo"></p>
+  <script>
+    var x = document.getElementById("demo");
+
+    var apiGeolocationSuccess = function (position) {
+      console.log("API geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+      // alert("API geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+      x.innerHTML = "Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude;
+    };
+
+    var tryAPIGeolocation = function () {
+      $.post("https://www.googleapis.com/geolocation/v1/geolocate?key=AIzaSyCu8LScvr-Q-mYTuerY2b9yCHamUa8nib4", function (success) {
+        apiGeolocationSuccess({ coords: { latitude: success.location.lat, longitude: success.location.lng } });
+      })
+        .fail(function (err) {
+          console.log("API Geolocation error! \n\n", err);
+        });
+    };
+
+    var browserGeolocationSuccess = function (position) {
+      console.log("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+      // alert("Browser geolocation success!\n\nlat = " + position.coords.latitude + "\nlng = " + position.coords.longitude);
+      x.innerHTML = "Latitude: " + position.coords.latitude + "<br>Longitude: " + position.coords.longitude;
+    };
+
+    var browserGeolocationFail = function (error) {
+      x.innerHTML = "Geolocation is not supported by this browser Code: " + error.code + "<br>Message: " + error.message;
+      console.log(error);
+      switch (error.code) {
+
+        case error.TIMEOUT:
+          console.log("Browser geolocation error !\n\nTimeout.");
+          break;
+        case error.PERMISSION_DENIED:
+          if (error.message.indexOf("Only secure origins are allowed") == 0) {
+            tryAPIGeolocation();
+          }
+          break;
+        case error.POSITION_UNAVAILABLE:
+          console.log("Browser geolocation error !\n\nPosition unavailable.");
+          break;
+      }
+    };
+
+    var tryGeolocation = function () {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          browserGeolocationSuccess,
+          browserGeolocationFail,
+          { maximumAge: 50000, timeout: 20000, enableHighAccuracy: true });
+      }
+    };
+
+    // setInterval(function () {
+    //   console.log("Now called");
+    //   tryGeolocation();
+    // }, 5000);
+  </script>
+</body>
+
+</html>
